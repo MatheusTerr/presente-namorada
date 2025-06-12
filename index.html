@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nosso Universo Particular</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:wght@300;400;600&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+            "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- Scripts do Three.js para pós-processamento -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <style>
+        :root {
+            --font-display: 'Playfair Display', serif;
+            --font-script: 'Dancing Script', cursive;
+            --font-body: 'Poppins', sans-serif;
+            --c-pink: #ec4899;
+            --c-pink-light: #f472b6;
+            --c-amber: #f59e0b;
+        }
+        
+        body { font-family: var(--font-body); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23ec4899"><path d="M12 4.248c-3.148-5.402-12-3.825-12 2.942 0 4.661 5.571 9.629 12 15.81 6.43-6.181 12-11.149 12-15.81 0-6.792-8.875-8.306-12-2.942z"/></svg>') 12 12, auto; overflow-x: hidden; scroll-behavior: smooth; }
+        html.light body { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23f472b6"><path d="M12 4.248c-3.148-5.402-12-3.825-12 2.942 0 4.661 5.571 9.629 12 15.81 6.43-6.181 12-11.149 12-15.81 0-6.792-8.875-8.306-12-2.942z"/></svg>') 12 12, auto; }
+        button, a, .interactive-item { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23facc15"><path d="M12 .587l3.668 7.568L24 9.748l-6 5.845L19.335 24 12 19.925 4.665 24 6 15.593l-6-5.845 8.332-1.593z"/></svg>') 12 12, pointer; }
+        #main-particles-js, #lock-screen-particles { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
+        #constellation-unlock-effect { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 5rem; height: 5rem; opacity: 0; z-index: 10; }
+        #constellation-unlock-effect.animate { animation: unlock-effect 2s ease-out forwards; }
+        @keyframes unlock-effect { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(50); opacity: 0; } }
+        #constellation-lines line { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw-line 0.5s ease-out forwards; }
+        @keyframes draw-line { to { stroke-dashoffset: 0; } }
+        .kenburns-active { animation: kenburns 20s ease-out forwards; }
+        @keyframes kenburns { from { transform: scale(1.1) rotate(1deg); } to { transform: scale(1) rotate(0deg); } }
+        .modal { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .memory-card { perspective: 1000px; }
+        .memory-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s, opacity 0.3s; transform-style: preserve-3d; }
+        .memory-card.flip .memory-card-inner { transform: rotateY(180deg); }
+        .memory-card .front, .memory-card .back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+        .memory-card .back { transform: rotateY(180deg); }
+        .memory-card.matched .memory-card-inner { opacity: 0.5; cursor: default; transform: rotateY(180deg); }
+        #galaxy-mode { perspective: 1000px; overflow: hidden; touch-action: none; }
+        #galaxy-canvas { display: block; width: 100%; height: 100%; }
+        
+        #galaxy-planet-sidebar {
+            position: fixed; top: 0; right: 0; width: 100%; max-width: 400px; height: 100vh;
+            background: linear-gradient(to left, rgba(17, 24, 39, 0.95), rgba(17, 24, 39, 0.7));
+            backdrop-filter: blur(12px); z-index: 60; color: white;
+            transform: translateX(100%); transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+        #galaxy-planet-sidebar.visible { transform: translateX(0); }
+        #sidebar-planet-image-container { width: 100%; height: 45%; position: relative; overflow: hidden; }
+        #sidebar-planet-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease-out, opacity 0.5s ease-out; transform: scale(1.1); opacity: 0; }
+        #galaxy-planet-sidebar.visible #sidebar-planet-image { transform: scale(1); opacity: 1; transition-delay: 0.3s; }
+        #sidebar-planet-image-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(17, 24, 39, 1) 5%, transparent 60%); }
+        #sidebar-content-container { padding: 1.5rem 2rem 2rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        #sidebar-text-content { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out 0.5s, transform 0.5s ease-out 0.5s; }
+        #galaxy-planet-sidebar.visible #sidebar-text-content { opacity: 1; transform: translateY(0); }
+        #sidebar-navigation { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; margin-top: 1.5rem; opacity: 0; transition: opacity 0.5s ease-out 0.7s; }
+        #galaxy-planet-sidebar.visible #sidebar-navigation { opacity: 1; }
+        .sidebar-nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: background-color 0.2s; }
+        .sidebar-nav-btn:hover { background: rgba(255,255,255,0.2); }
+
+        #quiz-section, #playlist-section { background-color: rgba(255,255,255,0.05); border-radius: 1rem; padding: 2rem; max-w-4xl mx-auto; }
+        .quiz-option { display: block; padding: 1rem; margin-bottom: 0.75rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; }
+        .quiz-option:hover { background-color: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
+        .quiz-option.correct { background-color: #22c55e; border-color: #16a34a; color: white; font-weight: bold; }
+        .quiz-option.incorrect { background-color: #ef4444; border-color: #dc2626; color: white; font-weight: bold; }
+        .quiz-option.disabled { pointer-events: none; opacity: 0.7; }
+        #quiz-feedback { margin-top: 1.5rem; min-height: 2.5rem; font-style: italic; font-size: 1.125rem; }
+
+        #confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
+        .confetti { position: absolute; width: 10px; height: 10px; background-color: var(--c-pink); opacity: 0; }
+        .confetti.heart { width: 15px; height: 15px; background-color: transparent; }
+        .confetti.heart:before, .confetti.heart:after { content: ""; position: absolute; left: 7px; top: 0; width: 7px; height: 12px; background: var(--c-pink-light); border-radius: 7px 7px 0 0; transform: rotate(-45deg); transform-origin: 0 100%; }
+        .confetti.heart:after { left: 0; transform: rotate(45deg); transform-origin: 100% 100%; }
+        @keyframes confetti-fall { 0% { transform: translateY(-10vh) rotateZ(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotateZ(720deg); opacity: 0; } }
+
+        .galaxy-button { position: relative; padding: 1rem 2.5rem; border: 3px solid #6366f1; border-radius: 9999px; background-color: transparent; outline: none; overflow: hidden; color: white; transition: color 0.3s ease-in-out; font-weight: bold; font-size: 1.125rem; }
+        .galaxy-button .text-container { display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; }
+        .galaxy-button .backdrop { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; border-radius: 9999px; transition: transform 0.3s ease-in-out; background: linear-gradient(45deg, #8b5cf6, #4f46e5); }
+        .galaxy-button:hover .backdrop { transform: scale(1.5) rotate(15deg); }
+        .galaxy-button .spark { position: absolute; inset: 0; border-radius: 9999px; rotate: 0; filter: drop-shadow(0 0 10px #a78bfa); animation: spark-animation 3s ease-in-out infinite; }
+        .galaxy-button .spark:before { content: ""; position: absolute; height: 100%; width: 100%; border-radius: 9999px; background-image: conic-gradient(from 180deg at 50% 50%, #a78bfa, #ec4899, #f59e0b, transparent, #a78bfa); animation: spark-rotation 1.5s linear infinite; }
+        @keyframes spark-rotation { to { transform: rotate(360deg); } }
+        @keyframes spark-animation { 0%, 100% { opacity: 0.3; transform: scale(1.05); } 50% { opacity: 1; transform: scale(0.95); } }
+        #our-constellation-svg { filter: drop-shadow(0 0 10px var(--c-amber)); }
+        #our-constellation-svg .star { animation: drawn-star-pulse 3s infinite ease-in-out; }
+        @keyframes drawn-star-pulse { 0%, 100% { r: 5; opacity: 0.8; } 50% { r: 7; opacity: 1; } }
+        #our-constellation-svg .line { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw-line-reveal 2s ease-out forwards; animation-delay: 1s; }
+        @keyframes draw-line-reveal { to { stroke-dashoffset: 0; } }
+        .love-counter-pulse { animation: pulse-grow 1s infinite alternate; }
+        @keyframes pulse-grow { from { transform: scale(1); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); } to { transform: scale(1.03); box-shadow: 0 10px 15px -3px var(--c-pink-light), 0 4px 6px -2px var(--c-pink-light); } }
+        .swiper-container { width: 100%; padding-top: 50px; padding-bottom: 50px; }
+        .swiper-slide { background-position: center; background-size: cover; width: 300px; height: 420px; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; }
+        .crystal { transition: all 0.2s ease-out; filter: drop-shadow(0 0 5px currentColor); }
+        .crystal:hover { transform: scale(1.15); filter: drop-shadow(0 0 15px currentColor); }
+        .crystal.playing { transform: scale(1.1); animation: crystal-pulse 0.5s 1; }
+        @keyframes crystal-pulse { 50% { transform: scale(1.2); filter: drop-shadow(0 0 20px currentColor); } }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-500">
+    <div id="confetti-container"></div>
+    <div id="main-particles-js"></div> 
+
+    <div id="loader" class="fixed inset-0 bg-gray-900 z-[100] flex flex-col items-center justify-center transition-opacity duration-1000">
+        <i class="fas fa-heart text-pink-500 text-6xl animate-pulse"></i>
+        <p class="mt-4 text-lg font-script text-white">Carregando nosso universo...</p>
+    </div>
+
+    <div id="lock-screen" class="fixed inset-0 z-50 transition-opacity duration-1000 opacity-0 overflow-hidden">
+        <div id="lock-screen-particles" class="absolute inset-0 bg-[#0d021a]"></div>
+        <div class="relative h-full flex flex-col items-center justify-center text-center p-4">
+            <h1 class="text-4xl md:text-5xl font-script text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.7)]">Para desvendar nosso universo...</h1>
+            <p class="mt-2 text-lg text-gray-300">...desenhe nosso símbolo no céu.</p>
+            <div id="constellation-map" class="relative w-[300px] h-[300px] md:w-[350px] md:h-[350px] my-6 transition-transform duration-500">
+                <svg id="constellation-lines" class="absolute inset-0 w-full h-full pointer-events-none"></svg>
+                <div id="constellation-unlock-effect">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="text-amber-300 w-full h-full">
+                        <path d="M12 4.248c-3.148-5.402-12-3.825-12 2.942 0 4.661 5.571 9.629 12 15.81 6.43-6.181 12-11.149 12-15.81 0-6.792-8.875-8.306-12-2.942z"/>
+                    </svg>
+                </div>
+            </div>
+            <p id="unlock-hint" class="text-amber-500 h-6 transition-opacity duration-300 opacity-0">Quase... tente desenhar um coração.</p>
+        </div>
+    </div>
+    
+    <button id="theme-toggle" aria-label="Alternar tema" class="fixed top-5 right-5 z-40 w-12 h-12 rounded-full bg-pink-500/50 backdrop-blur-sm text-white text-xl flex items-center justify-center shadow-lg hover:bg-pink-500/70 transition-all duration-300 scale-0">
+        <i class="fas fa-sun"></i>
+    </button>
+    
+      <main id="main-content" class="opacity-0 transition-opacity duration-1000 relative">
+        <header class="relative text-center min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden z-10">
+            <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/10 z-10"></div>
+            <img src="https://ik.imagekit.io/6iz6c073z/IMG_5310.jpeg?updatedAt=1749700492272" class="absolute inset-0 w-full h-full object-cover kenburns-active" alt="Nosso pedido de namoro" style="object-position: center 20%;">
+            <div class="relative z-20">
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-script text-white drop-shadow-lg">O Nosso Infinito Particular</h1>
+                <p class="text-xl md:text-2xl mt-4 text-pink-300 font-light">Uma viagem pelas nossas memórias</p>
+            </div>
+            <a href="#content-start" class="absolute bottom-10 z-20 text-white animate-bounce">
+                <i class="fas fa-chevron-down text-3xl"></i>
+            </a>
+        </header>
+
+        <div id="content-start" class="bg-gray-100 dark:bg-gray-900 py-16 sm:py-24 relative z-10">
+            <div class="container mx-auto px-4 max-w-7xl space-y-24">
+                <section id="our-constellation" class="text-center">
+                    <h2 class="text-4xl font-display text-center mb-12 text-pink-500 dark:text-pink-400">Nossa Constelação</h2>
+                    <div class="flex justify-center">
+                         <svg id="our-constellation-svg" class="w-full max-w-lg" viewBox="-10 -10 120 120"></svg>
+                    </div>
+                     <p class="mt-6 text-lg max-w-3xl mx-auto">A forma que você desenhou. O símbolo que nos une. Que ele brilhe para sempre em nosso céu particular.</p>
+                </section>
+                <section id="love-counter-container" class="text-center"></section>
+                <section id="journal" class="text-center">
+                    <h2 class="text-4xl font-display text-center mb-12 text-pink-500 dark:text-pink-400">Nossas Memórias em Palavras</h2>
+                    <div class="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
+                        <div class="interactive-item group flex flex-col items-center justify-center cursor-pointer" data-journal="1">
+                            <i class="fas fa-book-open text-6xl text-amber-500 group-hover:text-amber-400 transition-all duration-300 transform group-hover:scale-110 group-hover:-rotate-3"></i>
+                            <p class="font-script text-2xl mt-2">O Início de Tudo</p>
+                        </div>
+                        <div class="interactive-item group flex flex-col items-center justify-center cursor-pointer" data-journal="2">
+                            <i class="fas fa-camera-retro text-6xl text-cyan-500 group-hover:text-cyan-400 transition-all duration-300 transform group-hover:scale-110"></i>
+                            <p class="font-script text-2xl mt-2">Colecionando Momentos</p>
+                        </div>
+                        <div class="interactive-item group flex flex-col items-center justify-center cursor-pointer" data-journal="3">
+                            <i class="fas fa-envelope-open-text text-6xl text-rose-500 group-hover:text-rose-400 transition-all duration-300 transform group-hover:scale-110 group-hover:rotate-3"></i>
+                            <p class="font-script text-2xl mt-2">De Coração para Coração</p>
+                        </div>
+                    </div>
+                </section>
+                <section id="photo-carousel-section">
+                    <h2 class="text-4xl font-display text-center mb-12 text-pink-500 dark:text-pink-400">Uma Viagem por Nossas Fotos</h2>
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper"></div>
+                        <div class="swiper-pagination"></div>
+                        <div class="swiper-button-next text-pink-500"></div>
+                        <div class="swiper-button-prev text-pink-500"></div>
+                    </div>
+                </section>
+                <section id="reasons" class="text-center">
+                    <h2 class="text-4xl font-display text-center mb-6 text-pink-500 dark:text-pink-400">Motivos Para Te Amar</h2>
+                    <div id="reason-box" class="min-h-[120px] bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 flex items-center justify-center mb-6 transition-all duration-300 max-w-3xl mx-auto">
+                        <p id="reason-text" class="text-xl italic text-gray-600 dark:text-gray-300 transition-opacity duration-300">Clique no coração para descobrir um motivo!</p>
+                    </div>
+                    <button id="reason-btn" class="interactive-item bg-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-pink-600 hover:scale-105 transform transition-all duration-300"><i class="fas fa-heart-pulse mr-2"></i> Novo Motivo</button>
+                </section>
+                <section id="music-box" class="text-center">
+                    <h2 class="text-4xl font-display text-center mb-12 text-teal-500 dark:text-teal-400">Caixa de Música Estelar</h2>
+                    <p class="mb-8 text-lg max-w-2xl mx-auto">Clique nos cristais para compor a nossa melodia. Cada nota é um sentimento, cada som uma memória.</p>
+                    <div id="music-box-container" class="flex justify-center items-center gap-4 md:gap-8 h-48"></div>
+                </section>
+
+                <section id="playlist-section">
+                    <h2 class="text-4xl font-display text-center mb-6 text-green-500 dark:text-green-400">Nossa Trilha Sonora</h2>
+                    <p class="text-center text-lg max-w-2xl mx-auto mb-8">Cada música aqui conta um pedaço da nossa história. Dê o play e vamos relembrar juntos.</p>
+                    <div class="shadow-2xl rounded-xl overflow-hidden">
+                        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/1UCYtOdAlR9ZSoY9Qs6buP?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                    </div>
+                </section>
+
+                <section id="quiz-section">
+                    <h2 class="text-4xl font-display text-center mb-12 text-indigo-500 dark:text-indigo-400">Quiz: Nossa História</h2>
+                    <div id="quiz-container" class="max-w-2xl mx-auto text-center">
+                        <!-- Conteúdo do quiz será inserido aqui pelo JS -->
+                    </div>
+                </section>
+
+                <section id="memory-game" class="mb-24">
+                    <h2 class="text-4xl font-display text-center mb-12 text-pink-500 dark:text-pink-400">Jogue e Relembre</h2>
+                    <div class="text-center mb-6">
+                        <span class="text-xl font-bold">Tempo: <span id="game-timer">00:00</span></span>
+                        <span class="ml-8 text-xl font-bold">Tentativas: <span id="game-attempts">0</span></span>
+                    </div>
+                    <div id="memory-game-board" class="grid grid-cols-3 sm:grid-cols-4 gap-4 max-w-2xl mx-auto"></div>
+                    <div class="text-center mt-6">
+                        <button id="memory-game-reset" class="interactive-item bg-blue-500 text-white font-bold py-2 px-6 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-300"><i class="fas fa-redo mr-2"></i> Reiniciar Jogo</button>
+                    </div>
+                </section>
+                <section id="letter" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 md:p-12">
+                    <h2 id="final-letter-title" class="text-4xl font-display text-pink-500 dark:text-pink-400 mb-6"></h2>
+                    <div id="final-letter-body" class="text-gray-700 dark:text-gray-300 space-y-4 text-lg leading-relaxed"></div>
+                </section>
+            </div>
+        </div>
+
+        <footer class="relative z-10 py-20 bg-gray-200 dark:bg-gray-800 flex flex-col items-center justify-center text-center overflow-hidden">
+             <div class="absolute -inset-2 bg-gradient-to-r from-purple-600 to-indigo-600 opacity-20 blur-3xl"></div>
+             <h3 class="text-3xl font-script mb-8 relative z-10">Pronta para a próxima etapa da nossa jornada?</h3>
+             <button id="galaxy-btn" class="galaxy-button interactive-item">
+                 <span class="spark"></span>
+                 <span class="backdrop"></span>
+                 <span class="text-container">
+                     <i class="fas fa-rocket mr-3"></i>
+                     <span>Explorar Nossa Galáxia</span>
+                 </span>
+            </button>
+        </footer>
+     </main>
+    
+    <!-- MODO GALÁXIA -->
+    <div id="galaxy-mode" class="fixed inset-0 bg-black z-40 transition-opacity duration-1000 opacity-0 pointer-events-none">
+        <canvas id="galaxy-canvas"></canvas>
+        <div id="galaxy-ui" class="absolute inset-0 pointer-events-none text-white transition-opacity duration-500">
+            <button id="galaxy-orbit-btn" class="absolute bottom-10 left-1/2 -translate-x-1/2 interactive-item bg-white/10 backdrop-blur-sm font-bold py-3 px-8 rounded-full shadow-lg hover:bg-white/20 transform transition-all duration-300 pointer-events-none opacity-0 -translate-y-4">
+                <i class="fas fa-satellite mr-2"></i> Voltar à Órbita
+            </button>
+            <button id="galaxy-exit-btn" class="absolute bottom-10 left-1/2 -translate-x-1/2 interactive-item bg-gradient-to-r from-pink-500 to-amber-500 font-bold py-3 px-8 rounded-full shadow-lg hover:scale-105 transform transition-all duration-300 pointer-events-auto">
+                <i class="fas fa-arrow-left mr-2"></i> Voltar à Realidade
+            </button>
+            <div class="absolute top-5 right-5 text-sm opacity-70 hidden md:block text-center">
+                 <p>Arraste para orbitar</p>
+                 <p>Scroll para zoom</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAINEL LATERAL DOS PLANETAS -->
+    <div id="galaxy-planet-sidebar">
+        <div id="sidebar-planet-image-container">
+            <img id="sidebar-planet-image" src="" alt="Memória do Planeta">
+            <div id="sidebar-planet-image-overlay"></div>
+        </div>
+        <div id="sidebar-content-container">
+            <div id="sidebar-text-content">
+                <h3 id="galaxy-planet-name" class="text-4xl font-display text-cyan-300 drop-shadow-lg mb-4"></h3>
+                <p id="galaxy-planet-message" class="text-lg text-gray-300 leading-relaxed"></p>
+            </div>
+            <div id="sidebar-navigation">
+                <button id="sidebar-prev-btn" class="sidebar-nav-btn interactive-item"><i class="fas fa-chevron-left"></i></button>
+                <button id="sidebar-next-btn" class="sidebar-nav-btn interactive-item"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+        <button id="galaxy-sidebar-close" class="absolute top-4 right-4 text-3xl text-white/70 hover:text-white transition-colors z-10">&times;</button>
+    </div>
+
+    <!-- Modais -->
+    <div id="journal-modal" class="modal fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div id="journal-modal-content" class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 sm:p-8 max-w-2xl w-full max-h-[80vh] flex flex-col transform scale-95 opacity-0">
+            <div class="flex justify-between items-start mb-4">
+                <h2 id="journal-title" class="text-3xl font-display text-pink-500 dark:text-pink-400"></h2>
+                <button id="journal-close" aria-label="Fechar modal" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-4xl leading-none">&times;</button>
+            </div>
+            <div id="journal-body" class="overflow-y-auto space-y-4 text-lg leading-relaxed pr-4"></div>
+        </div>
+    </div>
+    <div id="victory-modal" class="modal fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div id="victory-modal-content" class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 text-center max-w-md w-full transform scale-95 opacity-0">
+            <i class="fas fa-trophy text-6xl text-amber-400 mb-4"></i>
+            <h2 class="text-3xl font-display text-pink-500 dark:text-pink-400 mb-2">Parabéns!</h2>
+            <p class="text-lg mb-6">Você tem uma memória incrível, assim como o nosso amor!
+                <br>Tempo: <span id="final-game-time"></span> - Tentativas: <span id="final-game-attempts"></span>
+            </p>
+            <button id="victory-close" class="bg-pink-500 text-white font-bold py-2 px-6 rounded-full">Fechar</button>
+        </div>
+    </div>
+    
+    <script type="module">
+        // DADOS E CONFIGURAÇÕES DA APLICAÇÃO
+        const DATA = {
+            anniversaryDate: new Date('2025-02-08T18:43:08'),
+            constellation: {
+                correctSequence: ['1', '2', '3', '4', '5', '6', '7', '8', '1'],
+                stars: [ { id: 1, top: '30%', left: '50%' }, { id: 2, top: '15%', left: '30%' }, { id: 3, top: '25%', left: '10%' }, { id: 4, top: '55%', left: '20%' }, { id: 5, top: '85%', left: '50%' }, { id: 6, top: '55%', left: '80%' }, { id: 7, top: '25%', left: '90%' }, { id: 8, top: '15%', left: '70%' }, ]
+            },
+            reasons: [ "Pelo seu sorriso que ilumina meu dia.", "Pelo seu abraço que é meu porto seguro.", "Pela forma como você me entende sem que eu precise dizer nada.", "Pelas nossas conversas que duram horas e parecem minutos.", "Por me fazer uma pessoa melhor a cada dia.", "Pelo seu jeito único de ver o mundo.", "Por todas as risadas que compartilhamos, até as mais bobas.", "Pela sua paciência infinita comigo.", "Por acreditar em mim mais do que eu mesmo.", "Pela nossa cumplicidade e sintonia.", "Pelo seu cheiro que fica na minha roupa.", "Por me ensinar o que é amor de verdade.", "Pela sua força e pela sua delicadeza.", "Porque até o silêncio ao seu lado é confortável.", "Pelo jeito que seus olhos brilham quando você fala de algo que ama.", "Por me apoiar em todos os meus sonhos.", "Porque você transforma dias comuns em memórias inesquecíveis.", "Pelo seu cafuné que reinicia minha alma.", "Pela segurança que você me passa.", "Porque cada momento com você é o meu favorito.", "Porque você ri das minhas piadas sem graça.", "Por cuidar de mim.", "Pela forma como você me olha.", "Porque você me inspira a ser mais corajoso.", "Por ser a minha paz na confusão do mundo.", "Porque o futuro ao seu lado parece o lugar certo para estar.", ],
+            journal: { '1': { title: 'O Início de Tudo', body: `<p>Meu amor, nem parece que o início de tudo já fazem quase 2 anos. Lembro como se fosse hoje do dia em que decidi te chamar no Instagram, elogiando o seu cabelo maravilhoso com a frase: "O cabelo tá lindo demais, até brilha".</p><p>E você, com aquele seu jeito, respondeu: "Hahah é só o sol". Prontamente, eu já mandei a primeira cantada: "talvez seja seu brilho próprio?".</p><p>Desde aquele momento, eu soube que não podia desistir de você. Eu persisti, e hoje, finalmente posso olhar para o Matheus lá de trás e dizer com orgulho: "Nós conseguimos". A alegria de ter você ao meu lado é a prova de que valeu a pena. Agradeço por tudo, e como você mesma diz, "foi tudo no seu tempo certo". Eu me orgulho da minha resiliência, porque ela me trouxe até aqui, até você. Você é a minha Luz!</p>` }, '2': { title: 'Colecionando Momentos', body: `<p>Estamos colecionando momentos juntos, um mais precioso que o outro. Vamos relembrar alguns? Lembro da véspera de Natal em que fui atrás de você, e da véspera de Ano Novo, quando fizemos a mesma coisa. E o que falar do nosso primeiro encontro? O dia em que o Sonic se tornou mais do que um personagem para nós.</p><p>E aquela vez em Itapevi, assistindo ao show de carros debaixo de chuva, com os fogos de artifício no céu enquanto a gente só conseguia olhar um para o outro... foi mágico. Nosso pedido de namoro no Parque Ibirapuera está eternizado em nós.</p><p>No dia seguinte, nossa viagem para Ubatuba, o passeio de barco, e a nossa primeira vez dormindo juntos... de muitas que viriam! São tantos momentos, e eu mal posso esperar para viajar, experimentar e colecionar um infinito de novas memórias com você.</p>` }, '3': { title: 'De Coração para Coração', body: `<p>Diante de tudo isso, eu queria te falar que eu te amo além da vida. É com você com quem eu quero estar, e senti isso desde a primeira vez que te vi. Estou aqui para você e por você, em todos os momentos: te ajudando, aconselhando, abraçando, e de todos os jeitos possíveis!</p><p>Eu não meço esforços para te proporcionar tudo o que precisar. Desde que coloquei uma aliança no seu anelar, eu me comprometi a te fazer a mulher mais feliz do mundo, para o resto da vida.</p><p>E eu nunca vou deixar de lutar por nós!</p><p class="mt-6 font-bold font-script text-2xl text-pink-500 dark:text-pink-400">Eu te amo daqui ao infinito, Bianca!</p><p class="font-script text-2xl text-pink-500 dark:text-pink-400">Para o meu amor, do seu Amor...</p><p class="font-script text-2xl text-pink-500 dark:text-pink-400">Matheus</p>` }, },
+            finalLetter: { title: 'Uma Promessa para o Futuro', body: `<p>Bianca, se nosso amor fosse uma constelação, cada estrela seria uma risada, um abraço, um momento que compartilhamos. Olhando para trás, vejo um universo de memórias que criamos, e olhando para frente, vejo um infinito de possibilidades ao seu lado.</p><p>Este site é mais do que um presente; é um lembrete. Um lembrete de que, não importa para onde a vida nos leve, sempre teremos nosso próprio universo, um lugar seguro construído com base em carinho, respeito e um amor que parece ter sido escrito nas estrelas.</p><p>Você não é apenas parte da minha história, você é a minha história favorita. E eu mal posso esperar para escrever os próximos capítulos com você.</p><p class="mt-6 font-bold font-script text-2xl text-pink-500 dark:text-pink-400">Com todo o meu amor, para todo o sempre,</p><p class="font-script text-2xl text-pink-500 dark:text-pink-400">Matheus</p>` },
+            galleryImages: [ 
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_5310.jpeg?updatedAt=1749700492272', alt: 'Pedido de namoro' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/A32944FE-B08C-493F-88AB-D889DF2477C9.jpeg?updatedAt=1749662350948', alt: 'Primeiro beijo' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/84742FC7-13B6-4021-BFF4-AF5201E18C60.JPG?updatedAt=1749695866088', alt: 'Primeiro mês de namoro' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/FEE78F52-9CFD-4BDD-93F4-A66817CA3866.jpeg?updatedAt=1749662350068', alt: 'Ainda no primeiro mês' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/FDB79DB6-FEB8-4A56-B5FD-4A0047B43139.jpeg?updatedAt=1749662350597', alt: 'Viagem para Ubatuba' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_4806.PNG?updatedAt=1749695866539', alt: 'Beijo na bochecha' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_6052.jpeg?updatedAt=1749662348755', alt: 'Abraçados perto do lago' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_6242.jpeg?updatedAt=1749695864394', alt: 'Olhar de apaixonado' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_6239.jpeg?updatedAt=1749695864287', alt: 'Abraço na Gamescon' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_6243.jpeg?updatedAt=1749662348543', alt: 'Pose na Gamescon' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/A27A183C-D78F-4361-ABD2-3A085E61A338.JPG?updatedAt=1749695863907', alt: 'Roupas formais' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/0486E8F8-DB17-48CF-96DD-0F6F9FF9EF7F.JPG?updatedAt=1749695863780', alt: 'Mão na cintura' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_5712.jpeg?updatedAt=1749662348524', alt: 'Pose chique' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/3362D789-830A-46AA-9547-EE0FA64FD844.JPG?updatedAt=1749695863999', alt: 'Descolados' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_5915.jpeg?updatedAt=1749662348395', alt: 'Filme do Minecraft' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/70DC754C-FC1D-4346-89FC-4518B8060937.jpeg?updatedAt=1749662347953', alt: 'Deitados com o cachorro' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/bfee4231-3981-4e43-b12c-5a15ed079118.jpeg?updatedAt=1749662349817', alt: 'Selfie da selfie' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_6378.jpeg?updatedAt=1749662348560', alt: 'Tirando cravos' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/ED17AD51-C40B-4A0F-A737-FE64544FB83E.jpeg?updatedAt=1749662348414', alt: 'Sorrindo' },
+                { src: 'https://ik.imagekit.io/6iz6c073z/IMG_6183.jpeg?updatedAt=1749695864544', alt: 'Dentro de um balão' }
+            ],
+            musicBox: { notes: ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'], colors: ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-green-400', 'text-blue-400', 'text-indigo-400', 'text-violet-400', 'text-pink-400'] },
+            galaxyPlanets: [
+                 { id: 'mercury', name: 'Planeta dos Começos', message: 'Nosso primeiro encontro, o frio na barriga, a certeza de que algo especial estava começando.', textureUrl: 'https://ik.imagekit.io/6iz6c073z/2k_mercury.jpg?updatedAt=1749709638658', size: 2.5, hasAtmosphere: false, imageUrl: 'https://ik.imagekit.io/6iz6c073z/IMG_6162.jpeg?updatedAt=1749662348390' },
+                 { id: 'venus', name: 'Planeta das Risadas', message: 'Aqui guardamos todas as nossas gargalhadas, piadas internas e os momentos mais bobos e felizes.', textureUrl: 'https://ik.imagekit.io/6iz6c073z/2k_venus_surface.jpg?updatedAt=1749709639219', size: 3, hasAtmosphere: true, atmosphereColor: 0xf59e0b, imageUrl: 'https://ik.imagekit.io/6iz6c073z/ED17AD51-C40B-4A0F-A737-FE64544FB83E.jpeg?updatedAt=1749662348414' },
+                 { id: 'earth', name: 'Planeta da Cumplicidade', message: 'Nossa sintonia e entendimento, que nos faz sentir que nos conhecemos há várias vidas.', textureUrl: 'https://ik.imagekit.io/6iz6c073z/2k_earth_daymap.jpg?updatedAt=1749709400422', size: 3.2, hasAtmosphere: true, atmosphereColor: 0x3b82f6, imageUrl: 'https://ik.imagekit.io/6iz6c073z/23B91AC4-F585-4C38-86F6-5AAEB326EB3B.jpg?updatedAt=1749695866094' },
+                 { id: 'mars', name: 'Planeta dos Abraços', message: 'Onde cada abraço é um refúgio, um porto seguro para nossos corações.', textureUrl: 'https://ik.imagekit.io/6iz6c073z/2k_mars.jpg?updatedAt=1749709559940', size: 2.8, hasAtmosphere: true, atmosphereColor: 0xef4444, imageUrl: 'https://ik.imagekit.io/6iz6c073z/397CB3CD-55C3-4FE7-AC19-5EB3B9429FA6.JPG?updatedAt=1749695863738' },
+                 { id: 'jupiter', name: 'Planeta dos Sonhos', message: 'Nossos sonhos compartilhados, as aventuras que ainda viveremos e o futuro que estamos construindo juntos.', textureUrl: 'https://ik.imagekit.io/6iz6c073z/8k_jupiter.jpg?updatedAt=1749709662603', size: 6, hasAtmosphere: false, imageUrl: 'https://ik.imagekit.io/6iz6c073z/IMG_6179.jpeg?updatedAt=1749695864622' },
+                 { id: 'saturn', name: 'Planeta da Serenidade', message: 'A paz que encontramos um no outro, a calma de simplesmente estar ao seu lado.', textureUrl: 'https://ik.imagekit.io/6iz6c073z/8k_saturn.jpg?updatedAt=1749709535530', ringTextureUrl: 'https://ik.imagekit.io/6iz6c073z/8k_saturn_ring_alpha.png?updatedAt=1749709533313', size: 5, hasAtmosphere: false, imageUrl: 'https://ik.imagekit.io/6iz6c073z/IMG_6022.jpeg?updatedAt=1749695865940' },
+                 { id: 'neptune', name: 'Oceano de Sentimentos', message: 'A profundidade do nosso amor, vasto e cheio de mistérios que ainda vamos desvendar.', textureUrl: 'https://ik.imagekit.io/6iz6c073z/2k_neptune.jpg?updatedAt=1749749923405', size: 4, hasAtmosphere: true, atmosphereColor: 0x38bdf8, imageUrl: 'https://ik.imagekit.io/6iz6c073z/IMG_6235.jpeg?updatedAt=1749695864835' }
+            ],
+            quiz: [
+                {
+                    question: "Qual foi a primeira cantada que o Matheus usou?",
+                    options: ["Seu pai é padeiro?", "O seu cabelo brilha mais que o sol", "talvez seja seu brilho próprio?", "Você vem sempre aqui?"],
+                    correctAnswer: 2,
+                    feedback: {
+                        correct: "Isso mesmo! Uma cantada clássica para um momento inesquecível.",
+                        incorrect: "Quase! A cantada foi sobre o brilho que já era todo dela."
+                    }
+                },
+                {
+                    question: "Qual personagem de videogame simboliza nosso primeiro encontro?",
+                    options: ["Mario", "Sonic", "Link", "Pac-Man"],
+                    correctAnswer: 1,
+                     feedback: {
+                        correct: "Exato! Rápido como nossos corações batendo naquele dia.",
+                        incorrect: "Não foi esse... Pense em velocidade e anéis dourados!"
+                    }
+                },
+                {
+                    question: "Onde foi nosso pedido de namoro?",
+                    options: ["Parque Ibirapuera", "Na praia de Ubatuba", "Na Gamescon", "Em Itapevi"],
+                    correctAnswer: 0,
+                     feedback: {
+                        correct: "Memória perfeita! Um momento mágico em meio à natureza.",
+                        incorrect: "O pedido foi em um lugar muito especial, mas não foi aí."
+                    }
+                },
+                {
+                    question: "O que estávamos fazendo na nossa primeira viagem juntos, um dia após o pedido de namoro?",
+                    options: ["Vendo o pôr do sol", "Andando de balão", "Um passeio de barco em Ubatuba", "Jantando em um restaurante chique"],
+                    correctAnswer: 2,
+                     feedback: {
+                        correct: "Sim! Navegando juntos rumo ao nosso futuro.",
+                        incorrect: "Foi uma aventura, mas não essa. Envolvia o mar!"
+                    }
+                },
+                {
+                    question: "Qual evento chuvoso se tornou uma memória mágica com fogos de artifício?",
+                    options: ["Show de carros em Itapevi", "Festa de Ano Novo", "Passeio no parque", "Viagem para a praia"],
+                    correctAnswer: 0,
+                     feedback: {
+                        correct: "Isso! Nem a chuva conseguiu apagar o brilho daquele momento.",
+                        incorrect: "A chuva nos pegou de surpresa em outro evento especial."
+                    }
+                }
+            ]
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const App = {
+                isUnlocked: false,
+                shuffledReasons: [],
+                memoryGame: { timer: null },
+                quiz: {
+                    currentQuestionIndex: 0,
+                    score: 0,
+                    answered: false
+                },
+                galaxy: { 
+                    renderer: null, camera: null, scene: null, composer: null, 
+                    controls: null, raycaster: new THREE.Raycaster(), clock: new THREE.Clock(),
+                    planets: [],
+                    focusedPlanet: null,
+                    isCameraMoving: false, // RENAMED for clarity -> Renomeado para clareza
+                    initialCameraPos: new THREE.Vector3(0, 50, 150),
+                },
+                
+                elements: {
+                    loader: document.getElementById('loader'),
+                    lockScreen: document.getElementById('lock-screen'),
+                    mainContent: document.getElementById('main-content'),
+                    themeToggle: document.getElementById('theme-toggle'),
+                    loveCounterContainer: document.getElementById('love-counter-container'),
+                    reasonBtn: document.getElementById('reason-btn'),
+                    reasonText: document.getElementById('reason-text'),
+                    photoCarouselSection: document.getElementById('photo-carousel-section'),
+                    memoryGameBoard: document.getElementById('memory-game-board'),
+                    gameTimer: document.getElementById('game-timer'),
+                    gameAttempts: document.getElementById('game-attempts'),
+                    memoryGameResetBtn: document.getElementById('memory-game-reset'),
+                    finalLetterTitle: document.getElementById('final-letter-title'),
+                    finalLetterBody: document.getElementById('final-letter-body'),
+                    ourConstellationSvg: document.getElementById('our-constellation-svg'),
+                    musicBoxContainer: document.getElementById('music-box-container'),
+                    journalItems: () => document.querySelectorAll('[data-journal]'),
+                    journalModal: document.getElementById('journal-modal'),
+                    journalModalContent: document.getElementById('journal-modal-content'),
+                    journalTitle: document.getElementById('journal-title'),
+                    journalBody: document.getElementById('journal-body'),
+                    journalClose: document.getElementById('journal-close'),
+                    victoryModal: document.getElementById('victory-modal'),
+                    victoryModalContent: document.getElementById('victory-modal-content'),
+                    victoryClose: document.getElementById('victory-close'),
+                    finalGameTime: document.getElementById('final-game-time'),
+                    finalGameAttempts: document.getElementById('final-game-attempts'),
+                    galaxyBtn: document.getElementById('galaxy-btn'),
+                    galaxyMode: document.getElementById('galaxy-mode'),
+                    galaxyExitBtn: document.getElementById('galaxy-exit-btn'),
+                    galaxyOrbitBtn: document.getElementById('galaxy-orbit-btn'),
+                    galaxySidebar: document.getElementById('galaxy-planet-sidebar'),
+                    galaxySidebarClose: document.getElementById('galaxy-sidebar-close'),
+                    sidebarPlanetImage: document.getElementById('sidebar-planet-image'),
+                    galaxyPlanetName: document.getElementById('galaxy-planet-name'),
+                    galaxyPlanetMessage: document.getElementById('galaxy-planet-message'),
+                    sidebarPrevBtn: document.getElementById('sidebar-prev-btn'),
+                    sidebarNextBtn: document.getElementById('sidebar-next-btn'),
+                    quizContainer: document.getElementById('quiz-container'),
+                    confettiContainer: document.getElementById('confetti-container'),
+                },
+
+                init() {
+                    setTimeout(() => {
+                        this.elements.loader.classList.add('opacity-0', 'pointer-events-none');
+                        this.elements.lockScreen.classList.remove('opacity-0');
+                        this.setupLockScreen();
+                    }, 1500);
+                    this.initGalaxyMode();
+                },
+
+                startExperience() {
+                   if (this.isUnlocked) return;
+                    this.isUnlocked = true;
+                    this.elements.lockScreen.classList.add('opacity-0', 'pointer-events-none');
+                    setTimeout(() => {
+                        this.elements.mainContent.classList.remove('opacity-0');
+                        this.elements.themeToggle.classList.remove('scale-0');
+                        document.body.style.overflowY = 'auto';
+                        this.setupAllFeatures();
+                        this.setupMainParticles();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 500);
+                },
+                
+                setupAllFeatures() {
+                    this.setupTheme();
+                    this.setupLoveCounter();
+                    this.setupReasonGenerator();
+                    this.setupOurConstellation();
+                    this.setupPhotoCarousel();
+                    this.setupQuiz();
+                    this.setupMemoryGame();
+                    this.setupJournalModal();
+                    this.setupFinalLetter();
+                    this.setupMusicBox();
+                    this.elements.galaxyBtn.addEventListener('click', () => this.enterGalaxyMode());
+                    this.elements.galaxyExitBtn.addEventListener('click', () => this.exitGalaxyMode());
+                    this.elements.galaxyOrbitBtn.addEventListener('click', () => this.unfocusPlanet());
+                    this.elements.galaxySidebarClose.addEventListener('click', () => this.unfocusPlanet());
+                    this.elements.sidebarPrevBtn.addEventListener('click', () => this.navigateToPlanet(-1));
+                    this.elements.sidebarNextBtn.addEventListener('click', () => this.navigateToPlanet(1));
+                },
+
+                setupTheme() {
+                    const isDark = localStorage.getItem('theme') !== 'light';
+                    document.documentElement.classList.toggle('dark', isDark);
+                    this.elements.themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                    
+                    this.elements.themeToggle.addEventListener('click', () => {
+                        const isDarkMode = document.documentElement.classList.toggle('dark');
+                        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+                        this.elements.themeToggle.innerHTML = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                    });
+                },
+
+                setupLockScreen() {
+                    particlesJS('lock-screen-particles', { particles: { number: { value: 120, density: { enable: true, value_area: 800 }}, color: { value: "#ffffff" }, shape: { type: "star" }, opacity: { value: 0.8, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false }}, size: { value: 2, random: true }, line_linked: { enable: false }, move: { enable: true, speed: 0.5, direction: "none", random: true, straight: false, out_mode: "out"}}, interactivity: {}, retina_detect: true });
+                    let userSequence = [];
+                    const starElements = new Map();
+                    const constellationMap = document.getElementById('constellation-map');
+                    const constellationLines = document.getElementById('constellation-lines');
+                    const constellationUnlockEffect = document.getElementById('constellation-unlock-effect');
+                    const unlockHint = document.getElementById('unlock-hint');
+                    const getStarCenter = (el) => {
+                        const rect = el.getBoundingClientRect();
+                        const mapRect = constellationMap.getBoundingClientRect();
+                        return { x: (rect.left + rect.width / 2) - mapRect.left, y: (rect.top + rect.height / 2) - mapRect.top };
+                    };
+                    DATA.constellation.stars.forEach(starData => {
+                        const starEl = document.createElement('div');
+                        starEl.className = "absolute w-6 h-6 bg-white rounded-full cursor-pointer shadow-[0_0_15px_white,_0_0_25px_var(--c-amber)] transition-all duration-300 transform -translate-x-1/2 -translate-y-1/2 hover:scale-125";
+                        starEl.style.top = starData.top;
+                        starEl.style.left = starData.left;
+                        starEl.dataset.order = starData.id;
+                        constellationMap.appendChild(starEl);
+                        starElements.set(String(starData.id), starEl);
+                        starEl.addEventListener('click', () => handleStarClick(String(starData.id), starEl));
+                    });
+                    const handleStarClick = (order, starEl) => {
+                        if (userSequence.includes(order) && !(userSequence.length === DATA.constellation.correctSequence.length - 1 && order === '1')) return;
+                        userSequence.push(order);
+                        starEl.classList.add('bg-amber-400', 'scale-125');
+                        if (userSequence.length > 1) {
+                            const prevStarEl = starElements.get(userSequence[userSequence.length - 2]);
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            const start = getStarCenter(prevStarEl);
+                            const end = getStarCenter(starEl);
+                            line.setAttribute('x1', start.x); line.setAttribute('y1', start.y);
+                            line.setAttribute('x2', end.x); line.setAttribute('y2', end.y);
+                            line.setAttribute('stroke', 'rgba(251, 191, 36, 0.7)');
+                            line.setAttribute('stroke-width', '2');
+                            constellationLines.appendChild(line);
+                        }
+                        if (userSequence.length === DATA.constellation.correctSequence.length) {
+                            checkSequence();
+                        }
+                    };
+                    const checkSequence = () => {
+                        const isCorrect = JSON.stringify(userSequence) === JSON.stringify(DATA.constellation.correctSequence);
+                        if (isCorrect) {
+                            constellationUnlockEffect.classList.add('animate');
+                            setTimeout(() => this.startExperience(), 1000);
+                        } else {
+                            unlockHint.classList.remove('opacity-0');
+                            constellationMap.classList.add('shake');
+                            setTimeout(() => {
+                                constellationLines.innerHTML = '';
+                                userSequence = [];
+                                starElements.forEach(s => s.classList.remove('bg-amber-400', 'scale-125'));
+                                unlockHint.classList.add('opacity-0');
+                                constellationMap.classList.remove('shake');
+                            }, 1500);
+                        }
+                    };
+                },
+                
+                setupOurConstellation() {
+                    const svg = this.elements.ourConstellationSvg;
+                    const stars = DATA.constellation.stars;
+                    const sequence = DATA.constellation.correctSequence;
+                    
+                    const starCoords = new Map();
+                    stars.forEach(star => {
+                        const x = parseFloat(star.left);
+                        const y = parseFloat(star.top);
+                        starCoords.set(star.id, {x, y});
+
+                        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                        circle.setAttribute("cx", x);
+                        circle.setAttribute("cy", y);
+                        circle.setAttribute("r", "5");
+                        circle.setAttribute("fill", "currentColor");
+                        circle.classList.add('star', 'text-amber-400');
+                        circle.style.animationDelay = `${Math.random()}s`;
+                        svg.appendChild(circle);
+                    });
+
+                    for (let i = 0; i < sequence.length - 1; i++) {
+                        const startStar = starCoords.get(parseInt(sequence[i]));
+                        const endStar = starCoords.get(parseInt(sequence[i+1]));
+                        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                        line.setAttribute("x1", startStar.x);
+                        line.setAttribute("y1", startStar.y);
+                        line.setAttribute("x2", endStar.x);
+                        line.setAttribute("y2", endStar.y);
+                        line.setAttribute("stroke", "currentColor");
+                        line.setAttribute("stroke-width", "1");
+                         line.classList.add('line', 'text-amber-400/70');
+                        svg.appendChild(line);
+                    }
+                },
+                
+                setupLoveCounter() {
+                    const targetDate = DATA.anniversaryDate;
+                    const update = () => {
+                        const now = new Date();
+                        let diff = now - targetDate;
+
+                        let title, content;
+
+                        if (diff >= 0) {
+                            title = "Nossa história perdura há:";
+                            
+                            let years = now.getFullYear() - targetDate.getFullYear();
+                            let months = now.getMonth() - targetDate.getMonth();
+                            let days = now.getDate() - targetDate.getDate();
+                            let hours = now.getHours() - targetDate.getHours();
+                            let minutes = now.getMinutes() - targetDate.getMinutes();
+                            let seconds = now.getSeconds() - targetDate.getSeconds();
+
+                            if (seconds < 0) { minutes--; seconds += 60; }
+                            if (minutes < 0) { hours--; minutes += 60; }
+                            if (hours < 0) { days--; hours += 24; }
+                            if (days < 0) {
+                                months--;
+                                const lastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                                days += lastMonth.getDate();
+                            }
+                            if (months < 0) { years--; months += 12; }
+                            
+                            content = `
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg love-counter-pulse"><div class="text-3xl sm:text-4xl font-bold text-pink-500">${years}</div><div class="text-xs sm:text-sm">Anos</div></div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg love-counter-pulse"><div class="text-3xl sm:text-4xl font-bold text-pink-500">${months}</div><div class="text-xs sm:text-sm">Meses</div></div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg love-counter-pulse"><div class="text-3xl sm:text-4xl font-bold text-pink-500">${days}</div><div class="text-xs sm:text-sm">Dias</div></div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg love-counter-pulse"><div class="text-3xl sm:text-4xl font-bold text-pink-500">${hours}</div><div class="text-xs sm:text-sm">Horas</div></div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg love-counter-pulse"><div class="text-3xl sm:text-4xl font-bold text-pink-500">${minutes}</div><div class="text-xs sm:text-sm">Minutos</div></div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg love-counter-pulse"><div class="text-3xl sm:text-4xl font-bold text-pink-500">${seconds}</div><div class="text-xs sm:text-sm">Segundos</div></div>
+                            `;
+                        }
+
+                        this.elements.loveCounterContainer.innerHTML = `<h2 class="text-4xl font-display text-center mb-8 text-pink-500 dark:text-pink-400">${title}</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 text-gray-800 dark:text-white">${content}</div>`;
+                    };
+                    update();
+                    setInterval(update, 1000);
+                },
+
+                setupReasonGenerator() {
+                    this.shuffledReasons = [...DATA.reasons].sort(() => Math.random() - 0.5);
+                    this.elements.reasonBtn.addEventListener('click', () => {
+                        if (this.shuffledReasons.length === 0) {
+                            this.shuffledReasons = [...DATA.reasons].sort(() => Math.random() - 0.5);
+                        }
+                        const reason = this.shuffledReasons.pop();
+                        this.elements.reasonText.classList.add('opacity-0');
+                        setTimeout(() => {
+                            this.elements.reasonText.textContent = `"${reason}"`;
+                            this.elements.reasonText.classList.remove('opacity-0');
+                        }, 200);
+                    });
+                },
+
+                setupPhotoCarousel() {
+                    const swiperWrapper = this.elements.photoCarouselSection.querySelector('.swiper-wrapper');
+                    const slides = DATA.galleryImages.map(img => `
+                        <div class="swiper-slide" style="background-image:url(${img.src})"></div>
+                    `).join('');
+                    swiperWrapper.innerHTML = slides;
+
+                    new Swiper('.swiper-container', {
+                        effect: 'coverflow', grabCursor: true, centeredSlides: true,
+                        slidesPerView: 'auto', loop: true,
+                        autoplay: { delay: 2500, disableOnInteraction: false, },
+                        coverflowEffect: { rotate: 50, stretch: 0, depth: 100, modifier: 1, slideShadows: true, },
+                        pagination: { el: '.swiper-pagination', },
+                        navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev', },
+                    });
+                },
+
+                setupJournalModal() {
+                    this.elements.journalItems().forEach(item => item.addEventListener('click', (e) => {
+                        const id = e.currentTarget.dataset.journal;
+                        const content = DATA.journal[id];
+                        if (content) {
+                            this.elements.journalTitle.textContent = content.title;
+                            this.elements.journalBody.innerHTML = content.body;
+                            this.showModal(this.elements.journalModal, this.elements.journalModalContent);
+                        }
+                    }));
+                    this.elements.journalClose.addEventListener('click', () => this.hideModal(this.elements.journalModal, this.elements.journalModalContent));
+                },
+                
+                setupMusicBox() {
+                    const synth = new Tone.Synth({
+                        oscillator: { type: 'sine' },
+                        envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
+                    }).toDestination();
+
+                    DATA.musicBox.notes.forEach((note, index) => {
+                        const crystal = document.createElement('div');
+                        crystal.className = `crystal interactive-item w-10 h-16 md:w-12 md:h-20 ${DATA.musicBox.colors[index]} cursor-pointer`;
+                        crystal.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 15 10-15-10-5zM12 4.23L19.5 9 12 18.27 4.5 9 12 4.23z"/></svg>`;
+                        
+                        crystal.addEventListener('click', () => {
+                            Tone.start();
+                            synth.triggerAttackRelease(note, '8n');
+                            crystal.classList.add('playing');
+                            crystal.addEventListener('animationend', () => crystal.classList.remove('playing'), { once: true });
+                        });
+
+                        this.elements.musicBoxContainer.appendChild(crystal);
+                    });
+                },
+                
+                setupQuiz() {
+                    this.quiz.currentQuestionIndex = 0;
+                    this.quiz.score = 0;
+                    this.showQuizQuestion();
+                },
+
+                showQuizQuestion() {
+                    this.quiz.answered = false;
+                    const container = this.elements.quizContainer;
+                    const questionIndex = this.quiz.currentQuestionIndex;
+
+                    if (questionIndex >= DATA.quiz.length) {
+                        this.showQuizResult();
+                        return;
+                    }
+
+                    const questionData = DATA.quiz[questionIndex];
+                    let optionsHTML = '';
+                    questionData.options.forEach((option, index) => {
+                        optionsHTML += `<button class="quiz-option text-left w-full" data-index="${index}">${option}</button>`;
+                    });
+
+                    container.innerHTML = `
+                        <h3 class="text-2xl font-bold mb-6">${questionData.question}</h3>
+                        <div id="quiz-options">${optionsHTML}</div>
+                        <div id="quiz-feedback" class="transition-opacity duration-300 opacity-0"></div>
+                        <button id="quiz-next-btn" class="mt-6 bg-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-600 transition-all duration-300 hidden">Próxima Pergunta</button>
+                    `;
+
+                    const optionButtons = container.querySelectorAll('.quiz-option');
+                    optionButtons.forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            if (this.quiz.answered) return;
+                            this.checkQuizAnswer(parseInt(e.currentTarget.dataset.index));
+                        });
+                    });
+                },
+
+                checkQuizAnswer(selectedIndex) {
+                    this.quiz.answered = true;
+                    const questionData = DATA.quiz[this.quiz.currentQuestionIndex];
+                    const container = this.elements.quizContainer;
+                    const options = container.querySelectorAll('.quiz-option');
+                    const feedbackEl = container.querySelector('#quiz-feedback');
+
+                    options.forEach(btn => btn.classList.add('disabled'));
+
+                    if (selectedIndex === questionData.correctAnswer) {
+                        this.quiz.score++;
+                        options[selectedIndex].classList.add('correct');
+                        feedbackEl.innerHTML = `<p class="text-green-400">${questionData.feedback.correct}</p>`;
+                    } else {
+                        options[selectedIndex].classList.add('incorrect');
+                        options[questionData.correctAnswer].classList.add('correct');
+                        feedbackEl.innerHTML = `<p class="text-red-400">${questionData.feedback.incorrect}</p>`;
+                    }
+                    feedbackEl.classList.remove('opacity-0');
+                    
+                    const nextBtn = document.getElementById('quiz-next-btn');
+                    nextBtn.classList.remove('hidden');
+                    nextBtn.addEventListener('click', () => {
+                        this.quiz.currentQuestionIndex++;
+                        this.showQuizQuestion();
+                    }, { once: true });
+                },
+
+                showQuizResult() {
+                    const container = this.elements.quizContainer;
+                    const totalQuestions = DATA.quiz.length;
+                    const score = this.quiz.score;
+                    let message = '';
+
+                    if (score === totalQuestions) {
+                        message = 'Uau! Você acertou todas! Nossa sintonia é mais que perfeita! Você realmente me conhece. ❤️';
+                        this.triggerConfetti();
+                    } else if (score >= totalQuestions / 2) {
+                        message = 'Muito bem, meu amor! Você conhece bem a nossa história.';
+                    } else {
+                        message = 'Hmm, parece que precisamos de mais momentos como esses para você não esquecer... hehe';
+                    }
+
+                    container.innerHTML = `
+                        <h3 class="text-3xl font-bold mb-4">Quiz Finalizado!</h3>
+                        <p class="text-xl mb-6">Você acertou ${score} de ${totalQuestions} perguntas.</p>
+                        <p class="text-lg italic mb-8">"${message}"</p>
+                        <button id="quiz-restart-btn" class="bg-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-600 transition-all duration-300">Jogar Novamente</button>
+                    `;
+
+                    document.getElementById('quiz-restart-btn').addEventListener('click', () => this.setupQuiz());
+                },
+
+                setupMemoryGame() {
+                    const gameImages = [...DATA.galleryImages].sort(() => 0.5 - Math.random()).slice(0, 6);
+                    let cardArray = [...gameImages, ...gameImages].map((img, i) => ({ ...img, uniqueId: i })).sort(() => 0.5 - Math.random());
+                    let cardsChosen = [], cardsChosenIds = [], cardsWon = [];
+                    let attempts = 0;
+                    this.memoryGame.timer = null;
+
+                    const createBoard = () => {
+                        this.memoryGame.timer && clearInterval(this.memoryGame.timer);
+                        this.elements.memoryGameBoard.innerHTML = '';
+                        cardsChosen = []; cardsChosenIds = []; cardsWon = [];
+                        attempts = 0;
+                        this.elements.gameAttempts.textContent = '0';
+                        this.elements.gameTimer.textContent = '00:00';
+                        this.memoryGame.timer = null;
+
+                        cardArray.forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = 'memory-card w-full aspect-square interactive-item';
+                            card.dataset.id = item.uniqueId;
+                            card.innerHTML = `
+                                <div class="memory-card-inner">
+                                    <div class="front rounded-lg bg-pink-400 dark:bg-pink-800 flex items-center justify-center"><i class="fas fa-heart text-4xl text-white"></i></div>
+                                    <div class="back rounded-lg bg-cover bg-center" style="background-image: url('${item.src}')"></div>
+                                </div>`;
+                            card.addEventListener('click', () => flipCard(card, item));
+                            this.elements.memoryGameBoard.appendChild(card);
+                        });
+                    };
+
+                    const startTimer = () => {
+                        const startTime = Date.now();
+                        this.memoryGame.timer = setInterval(() => {
+                            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                            const secs = String(elapsed % 60).padStart(2, '0');
+                            this.elements.gameTimer.textContent = `${mins}:${secs}`;
+                        }, 1000);
+                    };
+
+                    const flipCard = (cardElement, cardItem) => {
+                        if (cardElement.classList.contains('flip') || cardsChosen.length === 2) return;
+                        if (!this.memoryGame.timer) startTimer();
+
+                        cardElement.classList.add('flip');
+                        cardsChosen.push(cardItem.src);
+                        cardsChosenIds.push({element: cardElement, id: cardItem.uniqueId});
+                        
+                        if (cardsChosen.length === 2) {
+                           attempts++;
+                           this.elements.gameAttempts.textContent = attempts;
+                            setTimeout(checkForMatch, 700);
+                        }
+                    };
+
+                    const checkForMatch = () => {
+                        const [card1, card2] = cardsChosenIds;
+                        if (cardsChosen[0] === cardsChosen[1] && card1.id !== card2.id) {
+                            card1.element.classList.add('matched');
+                            card2.element.classList.add('matched');
+                            cardsWon.push(cardsChosen[0]);
+                        } else {
+                            card1.element.classList.remove('flip');
+                            card2.element.classList.remove('flip');
+                        }
+                        cardsChosen = [];
+                        cardsChosenIds = [];
+
+                        if (cardsWon.length === gameImages.length) {
+                            clearInterval(this.memoryGame.timer);
+                            this.triggerConfetti();
+                            setTimeout(() => {
+                                this.elements.finalGameTime.textContent = this.elements.gameTimer.textContent;
+                                this.elements.finalGameAttempts.textContent = attempts;
+                                this.showModal(this.elements.victoryModal, this.elements.victoryModalContent);
+                            }, 500);
+                        }
+                    };
+
+                    this.elements.memoryGameResetBtn.addEventListener('click', createBoard);
+                    this.elements.victoryClose.addEventListener('click', () => {
+                        this.hideModal(this.elements.victoryModal, this.elements.victoryModalContent);
+                        createBoard();
+                    });
+                    createBoard();
+                },
+
+                triggerConfetti() {
+                    const container = this.elements.confettiContainer;
+                    container.innerHTML = '';
+                    for (let i = 0; i < 100; i++) {
+                        const confetti = document.createElement('div');
+                        const isHeart = Math.random() > 0.8;
+                        confetti.className = isHeart ? 'confetti heart' : 'confetti';
+                        if (!isHeart) {
+                            confetti.style.backgroundColor = ['#ec4899', '#f472b6', '#f59e0b', '#8b5cf6', '#3b82f6'][Math.floor(Math.random() * 5)];
+                        }
+                        confetti.style.left = `${Math.random() * 100}vw`;
+                        confetti.style.animation = `confetti-fall ${2 + Math.random() * 3}s ${Math.random() * 2}s linear forwards`;
+                        container.appendChild(confetti);
+                    }
+                    setTimeout(() => container.innerHTML = '', 5000);
+                },
+
+                setupFinalLetter() {
+                    const letter = DATA.finalLetter;
+                    this.elements.finalLetterTitle.textContent = letter.title;
+                    this.elements.finalLetterBody.innerHTML = letter.body;
+                },
+
+                setupMainParticles() {
+                    particlesJS('main-particles-js', { particles: { number: { value: 50, density: { enable: true, value_area: 800 }}, color: { value: "#e5e7eb" }, shape: { type: "circle" }, opacity: { value: 0.5, random: true }, size: { value: 1.5, random: true }, move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out"}}, interactivity: { detect_on: "window", events: { onhover: { enable: true, mode: "grab" }}, modes: { grab: { distance: 150, line_linked: { opacity: 0.3 }}}}, retina_detect: true });
+                },
+
+                showModal(modal, content) {
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    setTimeout(() => content.classList.remove('scale-95', 'opacity-0'), 50);
+                },
+
+                hideModal(modal, content) {
+                    content.classList.add('scale-95', 'opacity-0');
+                    setTimeout(() => modal.classList.add('opacity-0', 'pointer-events-none'), 300);
+                },
+
+                // --- MODO GALÁXIA ---
+                initGalaxyMode() {
+                    if (this.galaxy.renderer) return;
+
+                    const w = window.innerWidth;
+                    const h = window.innerHeight;
+                    const textureLoader = new THREE.TextureLoader();
+                    
+                    this.galaxy.scene = new THREE.Scene();
+                    this.galaxy.camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 5000);
+                    this.galaxy.camera.position.copy(this.galaxy.initialCameraPos);
+
+                    this.galaxy.renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('galaxy-canvas'), antialias: true, alpha: true });
+                    this.galaxy.renderer.setSize(w, h);
+                    this.galaxy.renderer.setPixelRatio(window.devicePixelRatio);
+                    
+                    this.galaxy.controls = new THREE.OrbitControls(this.galaxy.camera, this.galaxy.renderer.domElement);
+                    this.galaxy.controls.enableDamping = true;
+                    this.galaxy.controls.dampingFactor = 0.05;
+                    this.galaxy.controls.screenSpacePanning = false;
+                    this.galaxy.controls.minDistance = 20;
+                    this.galaxy.controls.maxDistance = 500;
+                    
+                    const renderScene = new THREE.RenderPass(this.galaxy.scene, this.galaxy.camera);
+                    const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(w, h), 0.7, 0.5, 0.6);
+                    this.galaxy.composer = new THREE.EffectComposer(this.galaxy.renderer);
+                    this.galaxy.composer.addPass(renderScene);
+                    this.galaxy.composer.addPass(bloomPass);
+
+                    const sunLight = new THREE.PointLight(0xfff5e1, 1.8, 3000, 2);
+                    this.galaxy.scene.add(sunLight);
+                    const ambientLight = new THREE.AmbientLight(0x405080, 0.6);
+                    this.galaxy.scene.add(ambientLight);
+                    
+                    const sun = new THREE.Mesh(
+                        new THREE.SphereGeometry(12, 64, 64),
+                        new THREE.MeshBasicMaterial({ map: textureLoader.load('https://ik.imagekit.io/6iz6c073z/2k_sun.jpg?updatedAt=1749709638448') })
+                    );
+                    this.galaxy.scene.add(sun);
+                    
+                    const skyboxTexture = textureLoader.load('https://ik.imagekit.io/6iz6c073z/2k_stars_milky_way.jpg?updatedAt=1749709639502');
+                    this.galaxy.scene.background = skyboxTexture;
+                    
+                    DATA.galaxyPlanets.forEach((p, i) => {
+                        const planetGroup = new THREE.Group();
+                        const texture = textureLoader.load(p.textureUrl);
+                        const material = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.9 });
+                        const planet = new THREE.Mesh(new THREE.SphereGeometry(p.size, 64, 64), material);
+                        planet.name = 'planet_mesh';
+                        planetGroup.add(planet);
+
+                        if (p.hasAtmosphere) {
+                            const atmosphere = this.createAtmosphere(p.size, p.atmosphereColor);
+                            planetGroup.add(atmosphere);
+                        }
+                        
+                        if (p.ringTextureUrl) {
+                            const ringTexture = textureLoader.load(p.ringTextureUrl);
+                            const ringGeo = new THREE.RingGeometry(p.size * 1.4, p.size * 2.2, 64);
+                            const ringMat = new THREE.MeshBasicMaterial({ map: ringTexture, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+                            const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                            ringMesh.rotation.x = -Math.PI / 2;
+                            planetGroup.add(ringMesh);
+                        }
+
+                        const orbitRadius = 45 + i * 35;
+                        const orbitGeom = new THREE.BufferGeometry().setFromPoints(new THREE.Path().absarc(0, 0, orbitRadius, 0, Math.PI * 2, false).getSpacedPoints(200));
+                        const orbitLine = new THREE.Line(orbitGeom, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 }));
+                        orbitLine.rotation.x = Math.PI / 2;
+                        this.galaxy.scene.add(orbitLine);
+                        
+                        planetGroup.userData = { ...p, index: i, orbitRadius: orbitRadius };
+                        this.galaxy.scene.add(planetGroup);
+                        this.galaxy.planets.push(planetGroup);
+                    });
+
+                    this.setupGalaxyClick();
+                    this.animateGalaxy();
+
+                    window.addEventListener('resize', () => {
+                        this.galaxy.camera.aspect = window.innerWidth / window.innerHeight;
+                        this.galaxy.camera.updateProjectionMatrix();
+                        this.galaxy.renderer.setSize(window.innerWidth, window.innerHeight);
+                        this.galaxy.composer.setSize(window.innerWidth, window.innerHeight);
+                    });
+                },
+
+                animateGalaxy() {
+                    requestAnimationFrame(() => this.animateGalaxy());
+                    const delta = this.galaxy.clock.getDelta();
+                    const time = this.galaxy.clock.getElapsedTime();
+
+                    this.galaxy.planets.forEach(p => {
+                        p.getObjectByName('planet_mesh').rotation.y += delta * 0.1;
+                        const speedFactor = 0.5 - p.userData.index * 0.05;
+                        const angle = (time * 0.1) * speedFactor + p.userData.index * 2;
+                        p.position.x = Math.cos(angle) * p.userData.orbitRadius;
+                        p.position.z = Math.sin(angle) * p.userData.orbitRadius;
+                    });
+
+                    if (this.galaxy.isCameraMoving) {
+                        let targetPosition;
+                        let controlTarget;
+                        
+                        if (this.galaxy.focusedPlanet) {
+                            const planet = this.galaxy.focusedPlanet;
+                            controlTarget = new THREE.Vector3();
+                            planet.getWorldPosition(controlTarget);
+
+                            const cameraOffset = planet.userData.size * 5;
+                            targetPosition = new THREE.Vector3(controlTarget.x + cameraOffset, controlTarget.y + cameraOffset / 2, controlTarget.z + cameraOffset);
+                        } else {
+                            targetPosition = this.galaxy.initialCameraPos;
+                            controlTarget = new THREE.Vector3(0, 0, 0);
+                        }
+
+                        this.galaxy.camera.position.lerp(targetPosition, 0.05);
+                        this.galaxy.controls.target.lerp(controlTarget, 0.05);
+
+                        const distanceToTarget = this.galaxy.camera.position.distanceTo(targetPosition);
+                        if (distanceToTarget < 0.1) {
+                            this.galaxy.isCameraMoving = false;
+                            // Apenas reativa os controles se não estiver focando em um planeta
+                            if (!this.galaxy.focusedPlanet) {
+                                this.galaxy.controls.enabled = true;
+                            }
+                        }
+                    }
+                    
+                    this.galaxy.controls.update();
+                    this.galaxy.composer.render();
+                },
+
+                createAtmosphere(size, color) {
+                    const atmosphereMat = new THREE.ShaderMaterial({
+                        uniforms: { 'c': { value: 0.5 }, 'p': { value: 4.0 }, glowColor: { value: new THREE.Color(color) }, },
+                        vertexShader: ` varying vec3 vNormal; void main() { vNormal = normalize( normalMatrix * normal ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); } `,
+                        fragmentShader: ` uniform vec3 glowColor; uniform float c; uniform float p; varying vec3 vNormal; void main() { float intensity = pow( c - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), p ); gl_FragColor = vec4( glowColor, 1.0 ) * intensity; } `,
+                        side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
+                    });
+                    const sphere = new THREE.SphereGeometry(size, 64, 64);
+                    const atmosphere = new THREE.Mesh(sphere, atmosphereMat);
+                    atmosphere.scale.set(1.15, 1.15, 1.15);
+                    return atmosphere;
+                },
+                
+                setupGalaxyClick() {
+                    this.elements.galaxyMode.addEventListener('click', (event) => {
+                        // Ignora cliques na sidebar ou durante a animação da câmera
+                        if (this.elements.galaxySidebar.classList.contains('visible') && this.elements.galaxySidebar.contains(event.target)) return;
+                        if (this.galaxy.isCameraMoving) return;
+                        
+                        const mouse = new THREE.Vector2( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1 );
+                        this.galaxy.raycaster.setFromCamera(mouse, this.galaxy.camera);
+                        const intersects = this.galaxy.raycaster.intersectObjects(this.galaxy.planets.map(p => p.getObjectByName('planet_mesh')));
+
+                        if (intersects.length > 0) {
+                            const clickedPlanetGroup = intersects[0].object.parent;
+                            this.focusOnPlanet(clickedPlanetGroup);
+                        }
+                    }, false);
+                },
+
+                focusOnPlanet(planetGroup) {
+                    if (this.galaxy.isCameraMoving && this.galaxy.focusedPlanet === planetGroup) return;
+
+                    const isNewPlanet = this.galaxy.focusedPlanet !== planetGroup;
+                    
+                    this.galaxy.isCameraMoving = true;
+                    this.galaxy.controls.enabled = false;
+                    this.galaxy.focusedPlanet = planetGroup;
+
+                    // Atualiza o painel lateral com uma transição suave
+                    if (isNewPlanet) {
+                        this.elements.galaxySidebar.classList.remove('visible');
+                        setTimeout(() => {
+                            const data = planetGroup.userData;
+                            this.elements.galaxyPlanetName.textContent = data.name;
+                            this.elements.galaxyPlanetMessage.textContent = data.message;
+                            this.elements.sidebarPlanetImage.src = data.imageUrl;
+                            this.elements.galaxySidebar.classList.add('visible');
+                        }, 300); // Espera a animação de saída terminar
+                    } else {
+                        // Se for o mesmo planeta, apenas garante que a sidebar está visível
+                         this.elements.galaxySidebar.classList.add('visible');
+                    }
+                    
+                    // Ajusta a visibilidade dos botões de controle
+                    this.elements.galaxyOrbitBtn.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+                    this.elements.galaxyOrbitBtn.classList.add('pointer-events-auto');
+                    this.elements.galaxyExitBtn.classList.add('opacity-0', 'pointer-events-none');
+                },
+
+                unfocusPlanet() {
+                    if (!this.galaxy.focusedPlanet || (this.galaxy.isCameraMoving && !this.galaxy.focusedPlanet)) return;
+                    
+                    this.galaxy.isCameraMoving = true; 
+                    this.galaxy.focusedPlanet = null;
+
+                    // Esconde a sidebar e ajusta os botões
+                    this.elements.galaxySidebar.classList.remove('visible');
+                    this.elements.galaxyOrbitBtn.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+                    this.elements.galaxyExitBtn.classList.remove('opacity-0', 'pointer-events-none');
+                },
+                
+                navigateToPlanet(direction) {
+                    if (this.galaxy.isCameraMoving || !this.galaxy.focusedPlanet) return;
+
+                    const currentIndex = this.galaxy.focusedPlanet.userData.index;
+                    const totalPlanets = this.galaxy.planets.length;
+                    // Calcula o próximo índice, garantindo que ele "dê a volta" corretamente
+                    const newIndex = (currentIndex + direction + totalPlanets) % totalPlanets;
+                    
+                    const newPlanet = this.galaxy.planets[newIndex];
+                    this.focusOnPlanet(newPlanet);
+                },
+
+                enterGalaxyMode() {
+                    this.elements.mainContent.style.display = 'none';
+                    this.elements.themeToggle.style.display = 'none';
+                    this.elements.galaxyMode.classList.remove('opacity-0', 'pointer-events-none');
+                },
+                
+                exitGalaxyMode() {
+                    // Primeiro, retorna para a órbita se estiver focado em um planeta
+                    if(this.galaxy.focusedPlanet) {
+                       this.unfocusPlanet();
+                    }
+                    // Adiciona um pequeno delay para a câmera começar a se mover de volta
+                    setTimeout(() => {
+                        this.elements.galaxyMode.classList.add('opacity-0', 'pointer-events-none');
+                        this.elements.mainContent.style.display = 'block';
+                        this.elements.themeToggle.style.display = 'flex';
+                        // Rola suavemente de volta para o botão que acionou o modo galáxia
+                        document.getElementById('galaxy-btn').scrollIntoView({ behavior: 'smooth' });
+                    }, 500); // Delay para garantir uma transição suave
+                },
+            };
+            App.init();
+        });
+    </script>
+</body>
+</html>
